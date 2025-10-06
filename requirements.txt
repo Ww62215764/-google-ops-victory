@@ -10,3 +10,4 @@ python-telegram-bot
 ruff
 pytest
 pytz
+google-cloud-monitoring
