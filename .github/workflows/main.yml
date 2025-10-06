@@ -68,9 +68,13 @@ jobs:
         push: true
         tags: ${{ secrets.DOCKER_USERNAME }}/drawsguard-api-collector:latest,${{ secrets.DOCKER_USERNAME }}/drawsguard-api-collector:${{ github.sha }}
 
-  deploy-to-cloud-run:
-    needs: build-and-push-docker # This job depends on the docker job
+  deploy-canary:
+    name:  Canary Deployment
+    needs: build-and-push-docker
     runs-on: ubuntu-latest
+    
+    outputs:
+      revision_url: ${{ steps.deploy.outputs.url }}
 
     steps:
     - name: 1. Checkout repository
@@ -81,35 +85,66 @@ jobs:
       with:
         credentials_json: '${{ secrets.GCP_SA_KEY }}'
 
-    - name: 3. Deploy to Cloud Run
+    - name: 3. Deploy Canary Revision to Cloud Run
+      id: deploy
       uses: 'google-github-actions/deploy-cloudrun@v2'
       with:
-        service: 'drawsguard-api-collector' # The name of your Cloud Run service
+        service: 'drawsguard-api-collector'
         project_id: '${{ secrets.GCP_PROJECT_ID }}'
-        region: 'us-central1' # The region of your Cloud Run service
-        image: 'docker.io/${{ secrets.DOCKER_USERNAME }}/drawsguard-api-collector:latest'
-        env_vars: |
-          # Add any environment variables your service needs
-          # EXAMPLE_VAR=example_value
+        region: 'us-central1'
+        image: 'docker.io/${{ secrets.DOCKER_USERNAME }}/drawsguard-api-collector:${{ github.sha }}'
+        traffic_split: 'LATEST=5,STABLE=95' # Send 5% traffic to the new revision
 
-  post-deployment-verification:
-    needs: deploy-to-cloud-run
+  verify-canary:
+    name: Verify Canary
+    needs: deploy-canary
     runs-on: ubuntu-latest
 
     steps:
-    - name: 1. Verify service health
+    - name: 1. Verify Canary service health
       run: |
-        echo "Waiting for 15 seconds for the new revision to be ready..."
+        echo "Waiting for 15 seconds for the canary revision to be ready..."
         sleep 15
-        curl --fail --show-error --silent "${{ secrets.CLOUD_RUN_SERVICE_URL }}/health"
+        echo "Pinging Canary URL: ${{ needs.deploy-canary.outputs.revision_url }}"
+        curl --fail --show-error --silent "${{ needs.deploy-canary.outputs.revision_url }}/health"
       
-    - name: 2. Send victory notification to Slack
+    - name: 2. Send Canary notification to Slack
       uses: rtCamp/action-slack-notify@v2
-      if: success() # Only run on success
+      if: success()
       env:
         SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_URL }}
-        SLACK_TITLE: "✅ Deployment Successful"
-        SLACK_MESSAGE: "New version of drawsguard-api-collector deployed successfully. Commit ${{ github.sha }} is now live."
+        SLACK_TITLE: " canary deployed: verification needed"
+        SLACK_MESSAGE: "Canary for commit ${{ github.sha }} is live and healthy. Ready for promotion."
+        SLACK_COLOR: "warning"
+        SLACK_USERNAME: "CI/CD Bot"
+        SLACK_ICON_EMOJI: ":test_tube:"
+
+  promote-to-production:
+    name: Promote to Production
+    needs: verify-canary
+    runs-on: ubuntu-latest
+    environment: production # This creates a manual approval gate
+
+    steps:
+    - name: 1. Authenticate to Google Cloud
+      uses: 'google-github-actions/auth@v2'
+      with:
+        credentials_json: '${{ secrets.GCP_SA_KEY }}'
+
+    - name: 2. Promote Canary by shifting 100% traffic
+      run: |
+        gcloud run services update-traffic drawsguard-api-collector \
+          --to-latest \
+          --region=us-central1 \
+          --project=${{ secrets.GCP_PROJECT_ID }}
+
+    - name: 3. Send Production notification to Slack
+      uses: rtCamp/action-slack-notify@v2
+      if: success()
+      env:
+        SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_URL }}
+        SLACK_TITLE: "✅ Production Deployment Successful"
+        SLACK_MESSAGE: "Commit ${{ github.sha }} is now live with 100% traffic."
         SLACK_COLOR: "good"
         SLACK_USERNAME: "CI/CD Bot"
         SLACK_ICON_EMOJI: ":rocket:"
