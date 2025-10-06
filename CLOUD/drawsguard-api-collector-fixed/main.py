@@ -316,8 +316,10 @@ async def collect(background_tasks: BackgroundTasks):
         raise HTTPException(status_code=500, detail="Internal Server Error") from e
 
 
-if __name__ == "__main__":
-    import uvicorn
+@app.on_event("shutdown")
+def shutdown_event():
+    logger.info("服务关闭。")
 
-    port = int(os.environ.get("PORT", 8080))
-    uvicorn.run("main:app", host="0.0.0.0", port=port, reload=True)
+if __name__ == "__main__":  # pragma: no cover
+    import uvicorn
+    uvicorn.run(app, host="0.0.0.0", port=8080)

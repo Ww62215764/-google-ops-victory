@@ -1,0 +1,69 @@
+{
+  "displayName": "DrawsGuard Canary Monitoring",
+  "gridLayout": {
+    "columns": "2",
+    "widgets": [
+      {
+        "title": "Request Rate (RPS) by Revision",
+        "xyChart": {
+          "dataSets": [
+            {
+              "timeSeriesQuery": {
+                "timeSeriesFilter": {
+                  "filter": "metric.type = \"custom.googleapis.com/drawsguard/requests_total\" resource.type = \"global\"",
+                  "aggregation": {
+                    "perSeriesAligner": "ALIGN_RATE"
+                  }
+                },
+                "unitOverride": "1"
+              },
+              "plotType": "LINE"
+            }
+          ],
+          "timeshiftDuration": "0s",
+          "yAxis": { "label": "RPS", "scale": "LINEAR" }
+        }
+      },
+      {
+        "title": "P95 Latency (ms) by Revision",
+        "xyChart": {
+          "dataSets": [
+            {
+              "timeSeriesQuery": {
+                "timeSeriesFilter": {
+                  "filter": "metric.type = \"custom.googleapis.com/drawsguard/latency_ms\" resource.type = \"global\"",
+                  "aggregation": {
+                    "perSeriesAligner": "ALIGN_PERCENTILE_95"
+                  }
+                }
+              },
+              "plotType": "LINE"
+            }
+          ],
+          "timeshiftDuration": "0s",
+          "yAxis": { "label": "Latency (ms)", "scale": "LINEAR" }
+        }
+      },
+      {
+        "title": "Error Count (Rate) by Revision",
+        "xyChart": {
+          "dataSets": [
+            {
+              "timeSeriesQuery": {
+                "timeSeriesFilter": {
+                  "filter": "metric.type = \"custom.googleapis.com/drawsguard/errors_total\" resource.type = \"global\"",
+                  "aggregation": {
+                    "perSeriesAligner": "ALIGN_RATE"
+                  }
+                }
+              },
+              "plotType": "LINE"
+            }
+          ],
+          "timeshiftDuration": "0s",
+          "yAxis": { "label": "Errors/sec", "scale": "LINEAR" }
+        }
+      }
+    ]
+  }
+}

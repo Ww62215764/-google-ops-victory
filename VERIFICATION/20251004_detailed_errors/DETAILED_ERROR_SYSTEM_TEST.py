@@ -323,7 +323,6 @@ def main():
         print(f"✅ API错误: {result['api_errors']}个")
 
         # 验证分布合理性
-        total = result['total_error_codes']
         if result['validation_errors'] > 0 and result['business_errors'] > 0 and result['api_errors'] > 0:
             print("✅ 错误分类分布: 合理")
         else:

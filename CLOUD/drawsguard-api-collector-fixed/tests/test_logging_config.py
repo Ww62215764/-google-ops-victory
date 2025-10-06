@@ -38,13 +38,13 @@ def test_setup_dual_logging_standard():
 
         # 3. 验证战果
         root_logger = logging.getLogger()
-        
+
         # 验证“本地电台”和“卫星通讯”都已就位
         assert len(root_logger.handlers) == 2
-        
+
         # 验证“本地电台”是正确的类型
         assert isinstance(root_logger.handlers[0], logging.StreamHandler)
-        
+
         # 验证“卫星通讯”模块被正确调用
         mock_gcp_client.assert_called_once()
         mock_cloud_handler_constructor.assert_called_once_with(mock_gcp_client.return_value, name="test-service")
@@ -55,17 +55,18 @@ def test_setup_dual_logging_no_credentials():
     在没有云端凭证时，“卫星通讯”会优雅失败，但“本地电台”依然正常工作。
     """
     # 1. 模拟“卫星通讯”模块，并让它在启动时就“坠毁”
-    with patch('common.logging_config.cloud_logging.Client', side_effect=DefaultCredentialsError("No credentials")) as mock_gcp_client:
+    patch_target = 'common.logging_config.cloud_logging.Client'
+    with patch(patch_target, side_effect=DefaultCredentialsError("No credentials")) as mock_gcp_client:
 
         # 2. 发起攻击
         setup_dual_logging("test-service-no-creds")
 
         # 3. 验证战果
         root_logger = logging.getLogger()
-        
+
         # 验证最终只有一个“本地电台”在工作，我们的部队没有陷入通讯瘫痪
         assert len(root_logger.handlers) == 1
         assert isinstance(root_logger.handlers[0], logging.StreamHandler)
-        
+
         # 验证我们的确尝试过启动“卫星通讯”
         mock_gcp_client.assert_called_once()

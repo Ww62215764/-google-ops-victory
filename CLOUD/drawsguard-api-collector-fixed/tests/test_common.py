@@ -1,5 +1,5 @@
 import pytest
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch
 import os
 import sys
 
@@ -31,19 +31,19 @@ def test_get_bq_client_singleton():
     """
     # 模拟 google.cloud.bigquery.Client
     with patch('common.bigquery_client.bigquery.Client') as mock_client_constructor:
-        
+
         # 第一次调用
         client1 = get_bq_client()
-        
+
         # 第二次调用
         client2 = get_bq_client()
 
         # 验证构造函数是否只被调用了一次
         mock_client_constructor.assert_called_once()
-        
+
         # 验证两次调用返回的是同一个实例
         assert client1 is client2
-        
+
 
 def test_get_bq_client_uses_env_project_id():
     """
@@ -56,7 +56,7 @@ def test_get_bq_client_uses_env_project_id():
          patch('common.bigquery_client.bigquery.Client') as mock_client_constructor:
 
         # 2. 发起攻击
-        client = get_bq_client()
+        get_bq_client()
 
         # 3. 验证战果
         # 我们期望，构造函数在被调用时，传入的 project 参数，是我们设置的环境变量

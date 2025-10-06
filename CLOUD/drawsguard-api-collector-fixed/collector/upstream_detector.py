@@ -139,7 +139,7 @@ def detect_and_handle_upstream_stale(
                 send_alert_func(alert)
             except Exception:
                 logger.exception("send_alert_func failed")
-        
+
         # 核心改动：抛出异常以触发熔断
         raise UpstreamStaleException(note, alert_details=alert)
 
