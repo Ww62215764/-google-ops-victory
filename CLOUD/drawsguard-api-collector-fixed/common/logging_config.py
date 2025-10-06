@@ -1,7 +1,17 @@
+"""
+This module provides a dual logging setup for the application.
+
+It configures the root logger to send logs to both the standard console
+and to Google Cloud Logging, allowing for easy local debugging and robust
+cloud-based observability.
+"""
+
 import logging
 import sys
+
 from google.cloud import logging as cloud_logging
 from google.cloud.logging.handlers import CloudLoggingHandler
+
 
 def setup_dual_logging(service_name: str, level: int = logging.INFO):
     """
@@ -28,8 +38,8 @@ def setup_dual_logging(service_name: str, level: int = logging.INFO):
 
     # Create a formatter that adds severity, timestamp, and message
     formatter = logging.Formatter(
-        '%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-        datefmt='%Y-%m-%d %H:%M:%S'
+        "%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+        datefmt="%Y-%m-%d %H:%M:%S",
     )
     console_handler.setFormatter(formatter)
 
@@ -48,7 +58,9 @@ def setup_dual_logging(service_name: str, level: int = logging.INFO):
         # It correctly sets severity and other structured log fields.
         root_logger.addHandler(cloud_handler)
 
-        logging.info(f"Successfully configured dual logging for service '{service_name}'.")
+        logging.info(
+            f"Successfully configured dual logging for service '{service_name}'."
+        )
         logging.info("Logs will now be sent to both Console and Google Cloud Logging.")
 
     except Exception as e:

@@ -15,6 +15,7 @@ from enum import Enum
 from typing import Dict, Any, Optional, Union, List
 import uuid
 
+
 # 模拟FastAPI的状态码
 class MockStatus:
     HTTP_400_BAD_REQUEST = 400
@@ -29,12 +30,14 @@ class MockStatus:
     HTTP_503_SERVICE_UNAVAILABLE = 503
     HTTP_504_GATEWAY_TIMEOUT = 504
 
+
 # 复制错误系统的核心类（简化版本）
 class ErrorSeverity(Enum):
     LOW = "low"
     MEDIUM = "medium"
     HIGH = "high"
     CRITICAL = "critical"
+
 
 class ErrorCategory(Enum):
     VALIDATION = "validation"
@@ -46,6 +49,7 @@ class ErrorCategory(Enum):
     NETWORK = "network"
     EXTERNAL_API = "external_api"
 
+
 @dataclass
 class ErrorContext:
     user_id: Optional[str] = None
@@ -55,6 +59,7 @@ class ErrorContext:
     resource: Optional[str] = None
     timestamp: Optional[datetime] = None
     additional_info: Optional[Dict[str, Any]] = None
+
 
 @dataclass
 class ErrorRecovery:
@@ -69,16 +74,42 @@ class ErrorRecovery:
         if self.alternative_endpoints is None:
             self.alternative_endpoints = []
 
-class DetailedErrorCode(Enum):
-    VALIDATION_INVALID_FORMAT = (4001, ErrorSeverity.MEDIUM, ErrorCategory.VALIDATION,
-        "数据格式无效", "Invalid data format", MockStatus.HTTP_400_BAD_REQUEST)
-    BUSINESS_INSUFFICIENT_BALANCE = (4201, ErrorSeverity.MEDIUM, ErrorCategory.BUSINESS_LOGIC,
-        "余额不足", "Insufficient balance", MockStatus.HTTP_400_BAD_REQUEST)
-    PC28_API_ERROR = (4600, ErrorSeverity.HIGH, ErrorCategory.EXTERNAL_API,
-        "PC28 API接口错误", "PC28 API interface error", MockStatus.HTTP_503_SERVICE_UNAVAILABLE)
 
-    def __init__(self, code: int, severity: ErrorSeverity, category: ErrorCategory,
-                 cn_message: str, en_message: str, http_status: int):
+class DetailedErrorCode(Enum):
+    VALIDATION_INVALID_FORMAT = (
+        4001,
+        ErrorSeverity.MEDIUM,
+        ErrorCategory.VALIDATION,
+        "数据格式无效",
+        "Invalid data format",
+        MockStatus.HTTP_400_BAD_REQUEST,
+    )
+    BUSINESS_INSUFFICIENT_BALANCE = (
+        4201,
+        ErrorSeverity.MEDIUM,
+        ErrorCategory.BUSINESS_LOGIC,
+        "余额不足",
+        "Insufficient balance",
+        MockStatus.HTTP_400_BAD_REQUEST,
+    )
+    PC28_API_ERROR = (
+        4600,
+        ErrorSeverity.HIGH,
+        ErrorCategory.EXTERNAL_API,
+        "PC28 API接口错误",
+        "PC28 API interface error",
+        MockStatus.HTTP_503_SERVICE_UNAVAILABLE,
+    )
+
+    def __init__(
+        self,
+        code: int,
+        severity: ErrorSeverity,
+        category: ErrorCategory,
+        cn_message: str,
+        en_message: str,
+        http_status: int,
+    ):
         self.code = code
         self.severity = severity
         self.category = category
@@ -86,12 +117,15 @@ class DetailedErrorCode(Enum):
         self.en_message = en_message
         self.http_status = http_status
 
+
 class MockHTTPException(Exception):
     """模拟HTTP异常"""
+
     def __init__(self, status_code: int, detail: str):
         self.status_code = status_code
         self.detail = detail
         super().__init__(detail)
+
 
 class DetailedPC28Exception(MockHTTPException):
     """详细的PC28异常类（简化版本）"""
@@ -102,18 +136,20 @@ class DetailedPC28Exception(MockHTTPException):
         detail: Optional[Union[str, Dict[str, Any]]] = None,
         context: Optional[ErrorContext] = None,
         recovery: Optional[ErrorRecovery] = None,
-        cause: Optional[Exception] = None
+        cause: Optional[Exception] = None,
     ):
         # 生成追踪ID
         trace_id = str(uuid.uuid4())[:8]
 
         # 构建详细错误响应
-        error_response = self._build_error_response(error_code, detail, context, recovery, trace_id)
+        error_response = self._build_error_response(
+            error_code, detail, context, recovery, trace_id
+        )
 
         # 调用父类初始化
         super().__init__(
             status_code=error_code.http_status,
-            detail=json.dumps(error_response, ensure_ascii=False, default=str)
+            detail=json.dumps(error_response, ensure_ascii=False, default=str),
         )
 
         # 保存异常信息
@@ -124,9 +160,14 @@ class DetailedPC28Exception(MockHTTPException):
         self.trace_id = trace_id
         self.timestamp = datetime.now(timezone.utc)
 
-    def _build_error_response(self, error_code: DetailedErrorCode, detail: Optional[Union[str, Dict]],
-                            context: Optional[ErrorContext], recovery: Optional[ErrorRecovery],
-                            trace_id: str) -> Dict[str, Any]:
+    def _build_error_response(
+        self,
+        error_code: DetailedErrorCode,
+        detail: Optional[Union[str, Dict]],
+        context: Optional[ErrorContext],
+        recovery: Optional[ErrorRecovery],
+        trace_id: str,
+    ) -> Dict[str, Any]:
         """构建详细错误响应"""
         error_response = {
             "error": {
@@ -136,11 +177,11 @@ class DetailedPC28Exception(MockHTTPException):
                 "message": error_code.cn_message,
                 "en_message": error_code.en_message,
                 "trace_id": trace_id,
-                "timestamp": self.timestamp.isoformat()
+                "timestamp": self.timestamp.isoformat(),
             },
             "context": {},
             "recovery": {},
-            "debug_info": {}
+            "debug_info": {},
         }
 
         if detail:
@@ -151,12 +192,15 @@ class DetailedPC28Exception(MockHTTPException):
 
         if context:
             context_dict = asdict(context)
-            error_response["context"] = {k: v for k, v in context_dict.items() if v is not None}
+            error_response["context"] = {
+                k: v for k, v in context_dict.items() if v is not None
+            }
 
         if recovery:
             recovery_dict = asdict(recovery)
             error_response["recovery"] = {
-                k: v for k, v in recovery_dict.items()
+                k: v
+                for k, v in recovery_dict.items()
                 if v is not None and (not isinstance(v, list) or v)
             }
 
@@ -173,14 +217,15 @@ class DetailedPC28Exception(MockHTTPException):
             "status_code": self.status_code,
             "context": self.context.__dict__ if self.context else {},
             "recovery": self.recovery.__dict__ if self.recovery else {},
-            "timestamp": self.timestamp.isoformat()
+            "timestamp": self.timestamp.isoformat(),
         }
+
 
 class PC28ValidationException(DetailedPC28Exception):
     """PC28数据验证异常"""
 
     def __init__(self, field: str, value: Any, expected: str, **kwargs):
-        context = kwargs.pop('context', ErrorContext())
+        context = kwargs.pop("context", ErrorContext())
         context.field = field
         context.value = str(value)
         context.expected = expected
@@ -190,7 +235,7 @@ class PC28ValidationException(DetailedPC28Exception):
             "field": field,
             "provided_value": str(value),
             "expected_format": expected,
-            "validation_type": "format_validation"
+            "validation_type": "format_validation",
         }
 
         recovery = ErrorRecovery(
@@ -198,8 +243,8 @@ class PC28ValidationException(DetailedPC28Exception):
             suggested_actions=[
                 f"请检查字段 '{field}' 的值",
                 f"确保值符合格式要求: {expected}",
-                "参考API文档获取正确的字段格式"
-            ]
+                "参考API文档获取正确的字段格式",
+            ],
         )
 
         super().__init__(
@@ -207,8 +252,9 @@ class PC28ValidationException(DetailedPC28Exception):
             detail=detail,
             context=context,
             recovery=recovery,
-            **kwargs
+            **kwargs,
         )
+
 
 def test_detailed_error_system():
     """测试详细错误系统"""
@@ -219,8 +265,7 @@ def test_detailed_error_system():
     print("📋 测试1: 基本错误创建")
     try:
         raise DetailedPC28Exception(
-            DetailedErrorCode.SYSTEM_INTERNAL_ERROR,
-            detail="测试系统错误"
+            DetailedErrorCode.SYSTEM_INTERNAL_ERROR, detail="测试系统错误"
         )
     except DetailedPC28Exception as e:
         print(f"✅ 异常创建成功: {e.error_code.cn_message}")
@@ -235,7 +280,7 @@ def test_detailed_error_system():
             field="probability",
             value=1.5,
             expected="0-1之间的数值",
-            context=ErrorContext(user_id="user123", operation="create_bet")
+            context=ErrorContext(user_id="user123", operation="create_bet"),
         )
     except PC28ValidationException as e:
         error_data = json.loads(e.detail)
@@ -249,9 +294,17 @@ def test_detailed_error_system():
     print("\n📋 测试3: 错误码管理")
 
     # 统计错误码
-    validation_errors = sum(1 for error in DetailedErrorCode if error.category == ErrorCategory.VALIDATION)
-    business_errors = sum(1 for error in DetailedErrorCode if error.category == ErrorCategory.BUSINESS_LOGIC)
-    api_errors = sum(1 for error in DetailedErrorCode if error.category == ErrorCategory.EXTERNAL_API)
+    validation_errors = sum(
+        1 for error in DetailedErrorCode if error.category == ErrorCategory.VALIDATION
+    )
+    business_errors = sum(
+        1
+        for error in DetailedErrorCode
+        if error.category == ErrorCategory.BUSINESS_LOGIC
+    )
+    api_errors = sum(
+        1 for error in DetailedErrorCode if error.category == ErrorCategory.EXTERNAL_API
+    )
 
     print("✅ 错误码统计:")
     print(f"   验证错误: {validation_errors}个")
@@ -277,7 +330,14 @@ def test_detailed_error_system():
 
         # 检查错误信息结构
         error_info = error_response["error"]
-        error_fields = ["code", "category", "severity", "message", "trace_id", "timestamp"]
+        error_fields = [
+            "code",
+            "category",
+            "severity",
+            "message",
+            "trace_id",
+            "timestamp",
+        ]
         for field in error_fields:
             if field in error_info:
                 print(f"   ✅ error.{field}: 存在")
@@ -295,9 +355,9 @@ def test_detailed_error_system():
     for severity, count in severity_count.items():
         print(f"   {severity}: {count}个错误码")
 
-    print("\n" + "="*50)
+    print("\n" + "=" * 50)
     print("🎉 详细错误系统测试完成")
-    print("="*50)
+    print("=" * 50)
 
     return {
         "test_result": "success",
@@ -305,13 +365,14 @@ def test_detailed_error_system():
         "severity_distribution": severity_count,
         "validation_errors": validation_errors,
         "business_errors": business_errors,
-        "api_errors": api_errors
+        "api_errors": api_errors,
     }
+
 
 def main():
     """主测试函数"""
     print("🎯 详细错误信息和状态码系统测试")
-    print("="*60)
+    print("=" * 60)
 
     try:
         result = test_detailed_error_system()
@@ -323,7 +384,11 @@ def main():
         print(f"✅ API错误: {result['api_errors']}个")
 
         # 验证分布合理性
-        if result['validation_errors'] > 0 and result['business_errors'] > 0 and result['api_errors'] > 0:
+        if (
+            result["validation_errors"] > 0
+            and result["business_errors"] > 0
+            and result["api_errors"] > 0
+        ):
             print("✅ 错误分类分布: 合理")
         else:
             print("⚠️ 错误分类分布: 需要完善")
@@ -351,6 +416,7 @@ def main():
         return False
 
     return True
+
 
 if __name__ == "__main__":
     success = main()

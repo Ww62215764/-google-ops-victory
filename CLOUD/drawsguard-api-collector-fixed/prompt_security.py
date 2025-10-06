@@ -2,13 +2,15 @@
 Prompt OWASP安全防护层 - 基于OWASP LLM Top 10 2025
 """
 
-from typing import Dict, Any, Type
-import re
 import inspect
+import re
+from typing import Any, Dict, Type
+
 
 class PromptSecurityException(Exception):
     """Prompt安全异常"""
-    pass
+
+
 
 def sanitize_user_input(user_input: str) -> str:
     """
@@ -24,7 +26,7 @@ def sanitize_user_input(user_input: str) -> str:
         r"(?i)execute.*command|执行.*命令",
         r"(?i)delete.*from|删除.*数据",
         r"(?i)drop.*table|删除.*表",
-        r"(?i)truncate.*table|清空.*表"
+        r"(?i)truncate.*table|清空.*表",
     ]
 
     for pattern in dangerous_patterns:
@@ -33,11 +35,14 @@ def sanitize_user_input(user_input: str) -> str:
 
     # HTML转义防止XSS
     sanitized = user_input.replace("<", "&lt;").replace(">", "&gt;")
-    sanitized = sanitized.replace("\"", "&quot;").replace("'", "&#x27;")
+    sanitized = sanitized.replace('"', "&quot;").replace("'", "&#x27;")
 
     return sanitized
 
-def validate_ai_output(output: Any, expected_schema: Dict[str, Dict[str, Type]]) -> bool:
+
+def validate_ai_output(
+    output: Any, expected_schema: Dict[str, Dict[str, Type]]
+) -> bool:
     """
     OWASP LLM02: 输出验证 - 确保AI输出符合预期格式
     """
@@ -48,13 +53,20 @@ def validate_ai_output(output: Any, expected_schema: Dict[str, Dict[str, Type]])
         if key not in output:
             raise PromptSecurityException(f"缺少必需字段: {key}")
         if not isinstance(output[key], schema_info["type"]):
-            raise PromptSecurityException(f"字段 {key} 类型错误，期望 {schema_info['type']}，实际 {type(output[key])}")
+            raise PromptSecurityException(
+                f"字段 {key} 类型错误，期望 {schema_info['type']}，实际 {type(output[key])}"
+            )
         if "min" in schema_info and output[key] < schema_info["min"]:
-            raise PromptSecurityException(f"字段 {key} 值太小，最小 {schema_info['min']}")
+            raise PromptSecurityException(
+                f"字段 {key} 值太小，最小 {schema_info['min']}"
+            )
         if "max" in schema_info and output[key] > schema_info["max"]:
-            raise PromptSecurityException(f"字段 {key} 值太大，最大 {schema_info['max']}")
+            raise PromptSecurityException(
+                f"字段 {key} 值太大，最大 {schema_info['max']}"
+            )
 
     return True
+
 
 def enforce_zero_trust() -> None:
     """
@@ -74,22 +86,28 @@ def enforce_zero_trust() -> None:
                     r"pd\.read_csv",
                     r"pickle\.load",
                     r"json\.load.*open",
-                    r"yaml\.load.*open"
+                    r"yaml\.load.*open",
                 ]
 
                 for pattern in forbidden_patterns:
                     if re.search(pattern, code_text):
-                        raise PromptSecurityException(f"检测到禁止的本地数据访问: {pattern}")
+                        raise PromptSecurityException(
+                            f"检测到禁止的本地数据访问: {pattern}"
+                        )
     finally:
         del frame
+
 
 def validate_bigquery_query(query: str) -> bool:
     """
     验证BigQuery查询安全性
     """
     # 必须包含WHERE子句（简单查询除外）
-    if not re.search(r"WHERE", query, re.IGNORECASE) and \
-       not re.search(r"(SELECT\s+COUNT|SELECT\s+\*\s+FROM.*LIMIT|SHOW|DESCRIBE)", query, re.IGNORECASE):
+    if not re.search(r"WHERE", query, re.IGNORECASE) and not re.search(
+        r"(SELECT\s+COUNT|SELECT\s+\*\s+FROM.*LIMIT|SHOW|DESCRIBE)",
+        query,
+        re.IGNORECASE,
+    ):
         raise PromptSecurityException("查询必须包含WHERE子句")
 
     # 禁止危险操作
@@ -99,7 +117,7 @@ def validate_bigquery_query(query: str) -> bool:
         r"TRUNCATE\s+TABLE",
         r"ALTER\s+TABLE",
         r"GRANT\s+",
-        r"REVOKE\s+"
+        r"REVOKE\s+",
     ]
 
     for operation in dangerous_operations:
@@ -107,6 +125,7 @@ def validate_bigquery_query(query: str) -> bool:
             raise PromptSecurityException(f"禁止执行危险操作: {operation}")
 
     return True
+
 
 # 系统级不可变提示词
 IMMUTABLE_SYSTEM_PROMPT = """

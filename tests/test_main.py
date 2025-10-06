@@ -49,7 +49,7 @@ def test_collect_circuit_breaker(client):
     with patch("main.get_api_key", return_value="fake_api_key"), patch(
         "main.call_api_with_retry",
         return_value={"codeid": 10000, "retdata": {"curent": {"long_issue": "20251006001"}}},
-    ), patch("main.detect_and_handle_upstream_stale", side_effect=main.UpstreamStaleException("Upstream is stale")):
+    ), patch("main.detect_and_handle_upstream_stale", side_effect=main.UpstreamStaleException):
         response = client.post("/collect")
         assert response.status_code == 429
 

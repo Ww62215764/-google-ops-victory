@@ -1,12 +1,11 @@
-import pytest
-from unittest.mock import patch
+"""Tests for the BigQuery client singleton module."""
+from __future__ import annotations
+
 import os
-import sys
+from unittest.mock import patch
 
-# 将应用目录添加到sys.path
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+import pytest
 
-# 导入整个模块，以便我们可以访问它的“私人武器库”
 from common import bigquery_client
 from common.bigquery_client import get_bq_client
 
@@ -30,7 +29,7 @@ def test_get_bq_client_singleton():
     第一次调用时创建客户端，后续调用返回同一个实例。
     """
     # 模拟 google.cloud.bigquery.Client
-    with patch('common.bigquery_client.bigquery.Client') as mock_client_constructor:
+    with patch("common.bigquery_client.bigquery.Client") as mock_client_constructor:
 
         # 第一次调用
         client1 = get_bq_client()
@@ -52,8 +51,9 @@ def test_get_bq_client_uses_env_project_id():
     """
     # 1. 设置“假想敌”的环境变量
     fake_project_id = "project-from-env"
-    with patch.dict(os.environ, {"GCP_PROJECT_ID": fake_project_id}), \
-         patch('common.bigquery_client.bigquery.Client') as mock_client_constructor:
+    with patch.dict(os.environ, {"GCP_PROJECT_ID": fake_project_id}), patch(
+        "common.bigquery_client.bigquery.Client"
+    ) as mock_client_constructor:
 
         # 2. 发起攻击
         get_bq_client()
@@ -61,4 +61,6 @@ def test_get_bq_client_uses_env_project_id():
         # 3. 验证战果
         # 我们期望，构造函数在被调用时，传入的 project 参数，是我们设置的环境变量
         # 毕业考试的最后答案：将 location 参数也包含在我们的“期望”之中
-        mock_client_constructor.assert_called_with(project=fake_project_id, location="us-central1")
+        mock_client_constructor.assert_called_with(
+            project=fake_project_id, location="us-central1"
+        )

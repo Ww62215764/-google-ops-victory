@@ -13,30 +13,31 @@ from CLOUD.common.telegram_push import build_prediction_message
 # 测试数据
 TEST_ORDERS = [
     {
-        'period': '3343128',
-        'market': 'oe',
-        'p_win': 0.52,
-        'ev': 0.04,
-        'stake_u': 100,
-        'note': 'bucket=high_confidence, weights=0.7'
+        "period": "3343128",
+        "market": "oe",
+        "p_win": 0.52,
+        "ev": 0.04,
+        "stake_u": 100,
+        "note": "bucket=high_confidence, weights=0.7",
     },
     {
-        'period': '3343128',
-        'market': 'size',
-        'p_win': 0.48,
-        'ev': -0.04,
-        'stake_u': 80,
-        'note': 'bucket=medium_confidence, weights=0.6'
+        "period": "3343128",
+        "market": "size",
+        "p_win": 0.48,
+        "ev": -0.04,
+        "stake_u": 80,
+        "note": "bucket=medium_confidence, weights=0.6",
     },
     {
-        'period': '3343129',
-        'market': 'oe',
-        'p_win': 0.55,
-        'ev': 0.10,
-        'stake_u': 120,
-        'note': 'bucket=high_confidence, weights=0.8'
-    }
+        "period": "3343129",
+        "market": "oe",
+        "p_win": 0.55,
+        "ev": 0.10,
+        "stake_u": 120,
+        "note": "bucket=high_confidence, weights=0.8",
+    },
 ]
+
 
 async def test_prediction_push():
     """测试预测结果推送功能"""
@@ -76,10 +77,11 @@ async def test_prediction_push():
     return {
         "test_result": "success",
         "orders_count": len(TEST_ORDERS),
-        "total_stake": sum(order['stake_u'] for order in TEST_ORDERS),
+        "total_stake": sum(order["stake_u"] for order in TEST_ORDERS),
         "message_length": len(message),
-        "async_execution": "completed"
+        "async_execution": "completed",
     }
+
 
 async def test_empty_orders():
     """测试空订单推送"""
@@ -95,8 +97,9 @@ async def test_empty_orders():
     return {
         "test_result": "success",
         "empty_orders_handled": True,
-        "message_type": "no_orders"
+        "message_type": "no_orders",
     }
+
 
 async def test_message_formatting():
     """测试消息格式化"""
@@ -108,7 +111,7 @@ async def test_message_formatting():
         ("单个订单", [TEST_ORDERS[0]], "3343128"),
         ("多个订单", TEST_ORDERS, "3343128"),
         ("空订单", [], "3343128"),
-        ("无期号", TEST_ORDERS[:2], None)
+        ("无期号", TEST_ORDERS[:2], None),
     ]
 
     for scenario_name, orders, period in scenarios:
@@ -117,10 +120,10 @@ async def test_message_formatting():
         print(f"消息长度: {len(message)} 字符")
 
         # 检查消息结构
-        lines = message.split('\n')
-        has_header = any('PC28预测结果' in line for line in lines)
-        has_order_count = any('总订单数' in line for line in lines)
-        has_timestamp = any('时间:' in line for line in lines)
+        lines = message.split("\n")
+        has_header = any("PC28预测结果" in line for line in lines)
+        has_order_count = any("总订单数" in line for line in lines)
+        has_timestamp = any("时间:" in line for line in lines)
 
         print(f"  包含标题: {'✅' if has_header else '❌'}")
         print(f"  包含订单数: {'✅' if has_order_count else '❌'}")
@@ -129,10 +132,11 @@ async def test_message_formatting():
     print("\n✅ 消息格式化测试完成")
     return {"test_result": "success", "scenarios_tested": len(scenarios)}
 
+
 async def main():
     """主测试函数"""
     print("🎯 预测结果推送功能测试")
-    print("="*60)
+    print("=" * 60)
 
     try:
         # 执行测试
@@ -141,9 +145,9 @@ async def main():
         result3 = await test_message_formatting()
 
         # 汇总结果
-        print("\n" + "="*60)
+        print("\n" + "=" * 60)
         print("📊 测试结果汇总")
-        print("="*60)
+        print("=" * 60)
 
         print("\n✅ 功能测试:")
         print(f"  预测推送: {result1['test_result']}")
@@ -176,6 +180,7 @@ async def main():
     except Exception as e:
         print(f"\n❌ 测试失败: {e}")
         return False
+
 
 if __name__ == "__main__":
     success = asyncio.run(main())

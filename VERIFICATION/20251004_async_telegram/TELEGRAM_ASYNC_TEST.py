@@ -19,8 +19,9 @@ TEST_CONFIG = {
     "test_big_small": "SMALL",
     "test_odd_even": "ODD",
     "max_wait_time": 10,  # 最大等待时间（秒）
-    "check_interval": 0.5  # 检查间隔（秒）
+    "check_interval": 0.5,  # 检查间隔（秒）
 }
+
 
 async def test_async_telegram_push():
     """
@@ -81,8 +82,9 @@ async def test_async_telegram_push():
         "test_result": "success",
         "total_time": total_time,
         "blocking_time": 0.3,
-        "performance_improvement": "显著提升"
+        "performance_improvement": "显著提升",
     }
+
 
 async def test_telegram_api():
     """
@@ -99,11 +101,7 @@ async def test_telegram_api():
         message = "🧪 **异步推送测试消息**\n\n✅ 测试消息发送成功！"
 
         url = f"https://api.telegram.org/bot{bot_token}/sendMessage"
-        payload = {
-            'chat_id': chat_id,
-            'text': message,
-            'parse_mode': 'Markdown'
-        }
+        payload = {"chat_id": chat_id, "text": message, "parse_mode": "Markdown"}
 
         print(f"📡 发送测试消息到: {url}")
 
@@ -113,7 +111,7 @@ async def test_telegram_api():
             response.raise_for_status()
 
             result = response.json()
-            if result.get('ok'):
+            if result.get("ok"):
                 print("✅ Telegram API连接测试成功")
                 return True
             else:
@@ -126,6 +124,7 @@ async def test_telegram_api():
     except Exception as e:
         print(f"❌ Telegram API测试失败: {e}")
         return False
+
 
 async def main():
     """
@@ -162,6 +161,7 @@ async def main():
     print("   2. 监控/telegram-stats端点性能指标")
     print("   3. 观察主流程响应速度提升")
     print("   4. 验证推送成功率和可靠性")
+
 
 if __name__ == "__main__":
     asyncio.run(main())

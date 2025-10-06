@@ -1,15 +1,14 @@
-import pytest
+"""Tests for the dual logging configuration module."""
+from __future__ import annotations
+
 import logging
-from unittest.mock import patch, MagicMock
-import sys
-import os
+from unittest.mock import MagicMock, patch
 
-# 将应用目录添加到sys.path
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-
-from common.logging_config import setup_dual_logging
-# 修正情报错误：正确的“弹药”名称是 'from google.auth.exceptions import DefaultCredentialsError'
+import pytest
 from google.auth.exceptions import DefaultCredentialsError
+
+from common.logging_config import setup_dual_logging  # noqa: E402
+
 
 @pytest.fixture(autouse=True)
 def cleanup_logging_handlers():
@@ -19,14 +18,16 @@ def cleanup_logging_handlers():
     for handler in root_logger.handlers[:]:
         root_logger.removeHandler(handler)
 
+
 def test_setup_dual_logging_standard():
     """
     测试“标准战况”：
     在有云端凭证的情况下，是否能同时配置好 Console 和 Cloud Logging handlers。
     """
     # 1. 模拟“卫星通讯”模块
-    with patch('common.logging_config.cloud_logging.Client') as mock_gcp_client, \
-         patch('common.logging_config.CloudLoggingHandler') as mock_cloud_handler_constructor:
+    with patch("common.logging_config.cloud_logging.Client") as mock_gcp_client, patch(
+        "common.logging_config.CloudLoggingHandler"
+    ) as mock_cloud_handler_constructor:
 
         # 为我们的“假想敌”佩戴上正确的“军衔”
         mock_handler_instance = MagicMock()
@@ -47,7 +48,10 @@ def test_setup_dual_logging_standard():
 
         # 验证“卫星通讯”模块被正确调用
         mock_gcp_client.assert_called_once()
-        mock_cloud_handler_constructor.assert_called_once_with(mock_gcp_client.return_value, name="test-service")
+        mock_cloud_handler_constructor.assert_called_once_with(
+            mock_gcp_client.return_value, name="test-service"
+        )
+
 
 def test_setup_dual_logging_no_credentials():
     """
@@ -55,8 +59,10 @@ def test_setup_dual_logging_no_credentials():
     在没有云端凭证时，“卫星通讯”会优雅失败，但“本地电台”依然正常工作。
     """
     # 1. 模拟“卫星通讯”模块，并让它在启动时就“坠毁”
-    patch_target = 'common.logging_config.cloud_logging.Client'
-    with patch(patch_target, side_effect=DefaultCredentialsError("No credentials")) as mock_gcp_client:
+    patch_target = "common.logging_config.cloud_logging.Client"
+    with patch(
+        patch_target, side_effect=DefaultCredentialsError("No credentials")
+    ) as mock_gcp_client:
 
         # 2. 发起攻击
         setup_dual_logging("test-service-no-creds")

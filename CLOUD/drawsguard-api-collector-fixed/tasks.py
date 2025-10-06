@@ -1,17 +1,24 @@
 #!/usr/bin/env python3
 import argparse
+import asyncio
 import logging
 import sys
+import time
+
+from google.cloud import bigquery
 
 # 从主应用中导入必要的函数
 # 注意：这需要确保PYTHONPATH正确设置或采用更健壮的打包方式
-from main import get_telegram_config, build_prediction_message, _send_telegram_with_retry
-from google.cloud import bigquery
-import asyncio
-import time
+from main import (_send_telegram_with_retry, build_prediction_message,
+                  get_telegram_config)
 
 # 配置一个简单的日志记录器
-logging.basicConfig(stream=sys.stdout, level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+logging.basicConfig(
+    stream=sys.stdout,
+    level=logging.INFO,
+    format="%(asctime)s - %(levelname)s - %(message)s",
+)
+
 
 def get_latest_draws(bq_client: bigquery.Client, limit: int = 100) -> list:
     """从BigQuery获取最新的开奖数据"""
@@ -31,6 +38,7 @@ def get_latest_draws(bq_client: bigquery.Client, limit: int = 100) -> list:
         logging.error(f"从BigQuery获取数据失败: {e}")
         return []
 
+
 def generate_predictions(draws: list) -> list:
     """
     生成预测订单的逻辑桩。
@@ -44,7 +52,7 @@ def generate_predictions(draws: list) -> list:
     logging.info("正在生成预测订单...")
 
     # 简单的占位逻辑：总是预测下一期是 "BIG" 和 "ODD"
-    latest_period = draws[0]['period']
+    latest_period = draws[0]["period"]
     next_period = str(int(latest_period) + 1)
 
     predictions = [
@@ -54,7 +62,7 @@ def generate_predictions(draws: list) -> list:
             "prediction": "BIG",
             "stake_u": 10,
             "p_win": 0.65,
-            "ev": 0.05
+            "ev": 0.05,
         },
         {
             "period": next_period,
@@ -62,17 +70,18 @@ def generate_predictions(draws: list) -> list:
             "prediction": "ODD",
             "stake_u": 5,
             "p_win": 0.58,
-            "ev": 0.02
-        }
+            "ev": 0.02,
+        },
     ]
     logging.info(f"为期号 {next_period} 生成了 {len(predictions)} 个预测订单。")
     return predictions
+
 
 async def run_predict_and_push():
     """运行预测并推送结果"""
     logging.info("========= 开始预测任务 =========")
 
-    bq_client = bigquery.Client(project='wprojectl')
+    bq_client = bigquery.Client(project="wprojectl")
 
     # 1. 获取最新数据
     latest_draws = get_latest_draws(bq_client, limit=10)
@@ -93,13 +102,15 @@ async def run_predict_and_push():
         logging.error("无法获取Telegram配置，推送失败。")
         return
 
-    next_period = orders[0]['period']
+    next_period = orders[0]["period"]
     current_timestamp = await asyncio.to_thread(time.time)
     trace_id = f"prediction_{next_period}_{int(current_timestamp)}"
     message = build_prediction_message(orders, next_period, trace_id)
 
     try:
-        await _send_telegram_with_retry(bot_token, chat_id, message, next_period, trace_id)
+        await _send_telegram_with_retry(
+            bot_token, chat_id, message, next_period, trace_id
+        )
         logging.info("✅ 预测结果成功推送到Telegram。")
         print("✅ 预测结果成功推送到Telegram。")
     except Exception as e:
@@ -119,8 +130,12 @@ def run_backfill(hours: int):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="运行PC28采集器的一次性任务。")
-    parser.add_argument("--backfill-hours", type=int, help="为指定的过去小时数运行数据回填。")
-    parser.add_argument("--predict-now", action="store_true", help="立即运行一次预测并推送结果。")
+    parser.add_argument(
+        "--backfill-hours", type=int, help="为指定的过去小时数运行数据回填。"
+    )
+    parser.add_argument(
+        "--predict-now", action="store_true", help="立即运行一次预测并推送结果。"
+    )
 
     args = parser.parse_args()
 

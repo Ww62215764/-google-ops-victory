@@ -7,6 +7,7 @@
 from google.cloud import secretmanager
 import requests
 
+
 def test_telegram_push():
     """测试Telegram推送"""
     try:
@@ -40,10 +41,10 @@ def test_telegram_push():
         # 发送测试消息
         url = f"https://api.telegram.org/bot{bot_token}/sendMessage"
         payload = {
-            'chat_id': chat_id,
-            'text': message,
-            'parse_mode': 'Markdown',
-            'disable_notification': False
+            "chat_id": chat_id,
+            "text": message,
+            "parse_mode": "Markdown",
+            "disable_notification": False,
         }
 
         print("\n📤 发送测试消息到Telegram...")
@@ -61,8 +62,10 @@ def test_telegram_push():
     except Exception as e:
         print(f"❌ Telegram推送失败: {e}")
         import traceback
+
         traceback.print_exc()
         return False
+
 
 if __name__ == "__main__":
     print("=" * 60)
@@ -78,10 +81,3 @@ if __name__ == "__main__":
     else:
         print("❌ 测试失败！需要进一步排查")
     print("=" * 60)
-
-
-
-
-
-
-

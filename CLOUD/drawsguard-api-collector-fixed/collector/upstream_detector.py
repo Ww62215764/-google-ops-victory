@@ -1,16 +1,29 @@
+"""
+This module provides functionality to detect and handle stale upstream APIs.
+
+It logs every API call, checks the history of returned data points (periods),
+and if it detects that the upstream API has been returning the same data point
+consecutively for a configurable number of times, it flags the upstream as stale,
+logs an alert, and raises a specific exception (`UpstreamStaleException`) to
+enable circuit breaking in the calling service.
+"""
 # collector/upstream_detector.py
+import logging
 import os
 import uuid
-import logging
 from datetime import datetime, timezone
-from google.cloud import bigquery
+
 from google.api_core.exceptions import GoogleAPIError
+from google.cloud import bigquery
+
 
 class UpstreamStaleException(Exception):
     """当上游API被检测到停更时抛出的自定义异常"""
+
     def __init__(self, message, alert_details=None):
         super().__init__(message)
         self.alert_details = alert_details
+
 
 logger = logging.getLogger(__name__)
 
@@ -20,20 +33,26 @@ UPSTREAM_TABLE = f"{PROJECT}.{BQ_MONITORING}.upstream_call_log"
 ALERTS_TABLE = f"{PROJECT}.{BQ_MONITORING}.upstream_stale_alerts"
 
 # 配置，可用环境变量覆盖
-N_CHECK = int(os.environ.get("UPSTREAM_CHECK_N", "10"))       # 取最近 N 条
-M_THRESHOLD = int(os.environ.get("UPSTREAM_M", "10"))        # 连续相同次数阈值
+N_CHECK = int(os.environ.get("UPSTREAM_CHECK_N", "10"))  # 取最近 N 条
+M_THRESHOLD = int(os.environ.get("UPSTREAM_M", "10"))  # 连续相同次数阈值
 TIME_THRESHOLD_HOURS = int(os.environ.get("UPSTREAM_T_HOURS", "4"))
 
 bq = bigquery.Client(project=PROJECT)
 
-def log_upstream_call(collector_name: str, returned_period: int, response_json: str = None, call_ts: datetime = None):
+
+def log_upstream_call(
+    collector_name: str,
+    returned_period: int,
+    response_json: str = None,
+    call_ts: datetime = None,
+):
     """将每次上游响应写入 upstream_call_log（使用 insert_rows_json）"""
     call_ts = call_ts or datetime.now(timezone.utc)
     row = {
         "call_ts": call_ts.isoformat(),
         "returned_period": int(returned_period),
         "collector": collector_name,
-        "response_json": response_json or ""
+        "response_json": response_json or "",
     }
     try:
         errors = bq.insert_rows_json(UPSTREAM_TABLE, [row])
@@ -43,6 +62,7 @@ def log_upstream_call(collector_name: str, returned_period: int, response_json: 
             logger.debug("Logged upstream call: %s %s", collector_name, returned_period)
     except GoogleAPIError as e:
         logger.exception("Failed to log upstream call: %s", e)
+
 
 def get_last_n_returned_periods(collector_name: str, n: int = None):
     """查询最近 n 次 returned_period（按 call_ts 降序）并返回 list[int]"""
@@ -68,6 +88,7 @@ def get_last_n_returned_periods(collector_name: str, n: int = None):
         logger.exception("Failed to query last n returned periods")
         return []
 
+
 def mark_upstream_stale(
     collector_name: str,
     stale_period: int,
@@ -87,14 +108,18 @@ def mark_upstream_stale(
         "first_seen": first_seen.isoformat(),
         "last_seen": last_seen.isoformat(),
         "severity": severity,
-        "note": note or ""
+        "note": note or "",
     }
     try:
         errors = bq.insert_rows_json(ALERTS_TABLE, [alert])
         if errors:
             logger.warning("Failed to insert stale alert to BQ: %s", errors)
         else:
-            logger.info("Inserted upstream_stale_alert: period=%s count=%s", stale_period, consecutive_count)
+            logger.info(
+                "Inserted upstream_stale_alert: period=%s count=%s",
+                stale_period,
+                consecutive_count,
+            )
     except GoogleAPIError:
         logger.exception("Failed to insert stale alert (BQ)")
 
@@ -102,7 +127,11 @@ def mark_upstream_stale(
 
 
 def detect_and_handle_upstream_stale(
-    collector_name: str, returned_period: int, response_json: str = None, call_ts=None, send_alert_func=None
+    collector_name: str,
+    returned_period: int,
+    response_json: str = None,
+    call_ts=None,
+    send_alert_func=None,
 ):
     """
     主函数：1) log call 2) check last N 3) if last M identical -> mark stale + optional send_alert
@@ -130,7 +159,7 @@ def detect_and_handle_upstream_stale(
             first_seen,
             last_seen,
             consecutive_count=M_THRESHOLD,
-            severity="CRITICAL", # 升级为CRITICAL，因为这将触发熔断
+            severity="CRITICAL",  # 升级为CRITICAL，因为这将触发熔断
             note=note,
         )
         # optional: send alert (non-blocking)
