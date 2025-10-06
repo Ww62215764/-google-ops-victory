@@ -54,24 +54,3 @@ def setup_dual_logging(service_name: str, level: int = logging.INFO):
     except Exception as e:
         logging.error(f"Failed to configure Google Cloud Logging: {e}", exc_info=True)
         logging.warning("Continuing with console-only logging.")
-
-# Example usage:
-if __name__ == '__main__':
-    # Configure logging for a hypothetical service
-    setup_dual_logging("my-test-service")
-
-    # Get a logger for the current module
-    logger = logging.getLogger(__name__)
-
-    # Log messages with different severity levels
-    logger.debug("This is a debug message. It won't be shown if level is INFO.")
-    logger.info("This is an informational message.")
-    logger.warning("This is a warning message.")
-    logger.error("This is an error message.")
-
-    # This is a placeholder for demonstrating logging levels.
-    # In a real application, you would have actual logic here.
-    try:
-        pass  # Removed the useless expression '1 / 0'
-    except ZeroDivisionError:
-        logger.critical("A critical error occurred.", exc_info=True)
