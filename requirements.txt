@@ -11,3 +11,4 @@ ruff
 pytest
 pytz
 google-cloud-monitoring
+pytest-cov
