@@ -1,0 +1,27 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.env
+.venv/
+.venv*/
+
+# Logs and temp
+*.log
+tmp/
+temp/
+dist/
+build/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+
+# OS
+.DS_Store
+
+# Terraform
+.terraform/
+terraform.tfstate
+terraform.tfstate.backup

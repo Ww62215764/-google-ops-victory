@@ -1,0 +1,8 @@
+steps:
+- name: 'gcr.io/cloud-builders/docker'
+  args: [ 'build', '-t', 'gcr.io/wprojectl/api-collector-job:latest', '-f', 'Dockerfile.job', '.' ]
+images:
+- 'gcr.io/wprojectl/api-collector-job:latest'
+
+
+

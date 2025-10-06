@@ -1,0 +1,17 @@
+[tool.ruff]
+line-length = 120 # 适当放宽行长度限制以解决大多数E501问题
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "C90", "B"]
+exclude = [
+  "dist",
+  "build",
+  ".venv",
+  "terraform/**/generated",
+]
+
+[tool.pytest.ini_options]
+addopts = "-q"
+testpaths = [
+    "CLOUD/drawsguard-api-collector-fixed/tests",
+]

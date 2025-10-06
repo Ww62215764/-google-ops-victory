@@ -1,0 +1,14 @@
+steps:
+- name: 'gcr.io/cloud-builders/docker'
+  args: [ 'build', '-t', 'gcr.io/wprojectl/api-collector-service:latest', '-f', 'Dockerfile', '.' ]
+- name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+  entrypoint: gcloud
+  args:
+    - 'run'
+    - 'services'
+    - 'replace'
+    - 'service.yaml'
+    - '--region=us-central1'
+    - '--project=wprojectl'
+images:
+- 'gcr.io/wprojectl/api-collector-service:latest'

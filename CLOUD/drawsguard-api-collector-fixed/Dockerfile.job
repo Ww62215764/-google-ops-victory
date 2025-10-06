@@ -1,0 +1,18 @@
+# Use the official lightweight Python image.
+# https://hub.docker.com/_/python
+FROM python:3.11-slim
+
+# Set the working directory in the container
+WORKDIR /app
+
+# 先拷贝 requirements.txt 并安装依赖
+# 这样可以利用Docker的层缓存机制，只有当依赖变化时才重新安装
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+# 拷贝所有应用代码
+COPY . .
+
+# 定义任务脚本为入口点
+# Cloud Run Jobs 将会通过命令行参数 (如 --predict-now) 来调用这个脚本
+ENTRYPOINT ["python3", "tasks.py"]

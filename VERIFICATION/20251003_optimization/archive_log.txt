@@ -1,0 +1,12 @@
+🚀 开始归档备份表到GCS...
+归档目录: gs://wprojectl-storage/bigquery_backups/20251003_232340
+📁 创建归档目录...
+CommandException: The mb command requires at least 1 argument. Usage:
+
+  gsutil mb [-b (on|off)] [-c <class>] [-k <key>] [-l <location>] [-p <project>]
+            [--autoclass] [--retention <time>] [--pap <setting>]
+            [--placement <region1>,<region2>]
+            [--rpo (ASYNC_TURBO|DEFAULT)] gs://<bucket_name>...
+
+For additional help run:
+  gsutil help mb

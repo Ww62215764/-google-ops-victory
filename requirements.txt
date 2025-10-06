@@ -1,0 +1,12 @@
+fastapi
+uvicorn
+google-cloud-bigquery
+google-cloud-secret-manager
+google-cloud-logging
+requests
+pydantic>=2.0
+aiohttp
+python-telegram-bot
+ruff
+pytest
+pytz

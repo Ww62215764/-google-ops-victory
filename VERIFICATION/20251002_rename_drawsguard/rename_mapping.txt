@@ -1,0 +1,41 @@
+# DrawsGuard 重命名映射规则
+
+## 系统层面
+pc28系统 → DrawsGuard系统
+PC28系统 → DrawsGuard系统
+加拿大28系统 → DrawsGuard系统（处理PC28数据源）
+
+## BigQuery数据集
+wprojectl.pc28 → wprojectl.drawsguard
+wprojectl:pc28 → wprojectl:drawsguard
+`pc28` → `drawsguard`
+
+pc28_prod → drawsguard_prod
+pc28_stage → drawsguard_stage
+pc28_audit → drawsguard_audit
+pc28_monitor → drawsguard_monitor
+pc28_backup → drawsguard_backup
+pc28_raw → drawsguard_raw
+pc28_data → drawsguard_data
+pc28_draw → drawsguard_draw
+pc28_lab → drawsguard_lab
+
+## 核心表
+pc28.draws → drawsguard.draws
+pc28.draws_14w → drawsguard.draws_14w
+
+## 文件和脚本
+pc28_* → drawsguard_*
+
+## 环境变量
+PC28_PERIOD_COL → DRAWSGUARD_PERIOD_COL
+
+## 保留的业务术语（仅作为数据源说明）
+- PC28（加拿大28）: 作为数据源名称保留
+- 示例: "DrawsGuard系统处理PC28（加拿大28）开奖数据"
+
+## 替换策略
+1. 系统名称: 全部替换为 DrawsGuard
+2. 数据集/表: 全部替换为 drawsguard
+3. 数据源: 保留PC28作为业务术语，标注为数据源
+
