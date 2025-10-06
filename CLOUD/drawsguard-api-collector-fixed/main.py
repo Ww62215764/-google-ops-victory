@@ -11,6 +11,8 @@ import logging
 import hashlib
 import pytz
 from datetime import datetime
+import requests
+import json
 
 # 将当前应用的根目录添加到Python模块搜索路径中
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -35,6 +37,7 @@ from common.bigquery_client import get_bq_client
 from common.utils import (
     sync_retry,
 )
+from collector.upstream_detector import detect_and_handle_upstream_stale, UpstreamStaleException
 
 # ================= 全局配置与客户端 =================
 setup_dual_logging(service_name="drawsguard-api-collector")
@@ -259,12 +262,24 @@ async def collect(background_tasks: BackgroundTasks):
         if data.get('codeid') != 10000:
             raise HTTPException(status_code=502, detail=f"API Error: {data.get('message', 'Unknown')}")
 
+        # 智能熔断器：检测上游是否停更
+        current_period_str = data.get('retdata', {}).get('curent', {}).get('long_issue')
+        if current_period_str:
+            detect_and_handle_upstream_stale(
+                collector_name="pc28_main_api",
+                returned_period=int(current_period_str),
+                response_json=json.dumps(data)
+            )
+
         result = parse_and_insert_data(data, background_tasks)
 
         logger.info("V6.0 Collector Pipeline Finished Successfully")
         logger.info("="*50)
 
         return {"status": "success", "result": result}
+    except UpstreamStaleException as e:
+        logger.warning(f"CIRCUIT BREAKER TRIPPED: {e}")
+        raise HTTPException(status_code=429, detail=f"Upstream is stale, halting requests: {e}")
     except Exception as e:
         logger.error(f"Collector pipeline failed: {str(e)}", exc_info=True)
         if isinstance(e, HTTPException):

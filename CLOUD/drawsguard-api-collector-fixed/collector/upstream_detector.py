@@ -6,6 +6,12 @@ from datetime import datetime, timezone
 from google.cloud import bigquery
 from google.api_core.exceptions import GoogleAPIError
 
+class UpstreamStaleException(Exception):
+    """当上游API被检测到停更时抛出的自定义异常"""
+    def __init__(self, message, alert_details=None):
+        super().__init__(message)
+        self.alert_details = alert_details
+
 logger = logging.getLogger(__name__)
 
 PROJECT = os.environ.get("GCP_PROJECT") or os.environ.get("PROJECT_ID", "wprojectl")
@@ -14,8 +20,8 @@ UPSTREAM_TABLE = f"{PROJECT}.{BQ_MONITORING}.upstream_call_log"
 ALERTS_TABLE = f"{PROJECT}.{BQ_MONITORING}.upstream_stale_alerts"
 
 # 配置，可用环境变量覆盖
-N_CHECK = int(os.environ.get("UPSTREAM_CHECK_N", "5"))        # 取最近 N 条
-M_THRESHOLD = int(os.environ.get("UPSTREAM_M", "5"))         # 连续相同次数阈值
+N_CHECK = int(os.environ.get("UPSTREAM_CHECK_N", "10"))       # 取最近 N 条
+M_THRESHOLD = int(os.environ.get("UPSTREAM_M", "10"))        # 连续相同次数阈值
 TIME_THRESHOLD_HOURS = int(os.environ.get("UPSTREAM_T_HOURS", "4"))
 
 bq = bigquery.Client(project=PROJECT)
@@ -116,6 +122,7 @@ def detect_and_handle_upstream_stale(
         # compute first_seen and last_seen timestamps for these M entries
         first_seen = last[M_THRESHOLD - 1][1]  # oldest among the M
         last_seen = last[0][1]
+        note = f"Detected {M_THRESHOLD} consecutive identical periods from upstream."
         # determine severity: by default WARNING; caller can escalate based on time window
         alert = mark_upstream_stale(
             collector_name,
@@ -123,8 +130,8 @@ def detect_and_handle_upstream_stale(
             first_seen,
             last_seen,
             consecutive_count=M_THRESHOLD,
-            severity="WARNING",
-            note="Detected consecutive identical periods from upstream.",
+            severity="CRITICAL", # 升级为CRITICAL，因为这将触发熔断
+            note=note,
         )
         # optional: send alert (non-blocking)
         if send_alert_func:
@@ -132,5 +139,8 @@ def detect_and_handle_upstream_stale(
                 send_alert_func(alert)
             except Exception:
                 logger.exception("send_alert_func failed")
-        return alert
+        
+        # 核心改动：抛出异常以触发熔断
+        raise UpstreamStaleException(note, alert_details=alert)
+
     return None
