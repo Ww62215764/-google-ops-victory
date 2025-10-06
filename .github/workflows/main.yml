@@ -101,23 +101,28 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - name: 1. Verify Canary service health
+    - name: 1. Checkout repository
+      uses: actions/checkout@v4
+
+    - name: 2. Authenticate to Google Cloud
+      uses: 'google-github-actions/auth@v2'
+      with:
+        credentials_json: '${{ secrets.GCP_SA_KEY }}'
+        
+    - name: 3. Set up Google Cloud SDK
+      uses: 'google-github-actions/setup-gcloud@v1'
+
+    - name: 4. Run Quality Gate Script
+      env:
+        GCP_PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
+        GCP_REGION: 'us-central1'
       run: |
-        echo "Waiting for 15 seconds for the canary revision to be ready..."
-        sleep 15
-        echo "Pinging Canary URL: ${{ needs.deploy-canary.outputs.revision_url }}"
-        curl --fail --show-error --silent "${{ needs.deploy-canary.outputs.revision_url }}/health"
+        chmod +x scripts/quality_gate.sh
+        ./scripts/quality_gate.sh
       
-    - name: 2. Send Canary notification to Slack
+    - name: 5. Send Canary notification to Slack
       uses: rtCamp/action-slack-notify@v2
       if: success()
-      env:
-        SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_URL }}
-        SLACK_TITLE: " canary deployed: verification needed"
-        SLACK_MESSAGE: "Canary for commit ${{ github.sha }} is live and healthy. Ready for promotion."
-        SLACK_COLOR: "warning"
-        SLACK_USERNAME: "CI/CD Bot"
-        SLACK_ICON_EMOJI: ":test_tube:"
 
   promote-to-production:
     name: Promote to Production
