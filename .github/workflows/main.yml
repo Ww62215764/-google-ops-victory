@@ -38,3 +38,32 @@ jobs:
       run: |
         source .venv/bin/activate
         pytest
+
+  build-and-push-docker:
+    needs: build-and-test # This job depends on the build-and-test job
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push' # Only run for pushes to main
+
+    steps:
+    - name: 1. Checkout repository
+      uses: actions/checkout@v4
+
+    - name: 2. Set up QEMU
+      uses: docker/setup-qemu-action@v3
+
+    - name: 3. Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+
+    - name: 4. Login to Docker Hub
+      uses: docker/login-action@v3
+      with:
+        username: ${{ secrets.DOCKER_USERNAME }}
+        password: ${{ secrets.DOCKER_PASSWORD }}
+
+    - name: 5. Build and push Docker image
+      uses: docker/build-push-action@v5
+      with:
+        context: ./CLOUD/drawsguard-api-collector-fixed
+        file: ./CLOUD/drawsguard-api-collector-fixed/Dockerfile
+        push: true
+        tags: ${{ secrets.DOCKER_USERNAME }}/drawsguard-api-collector:latest,${{ secrets.DOCKER_USERNAME }}/drawsguard-api-collector:${{ github.sha }}
