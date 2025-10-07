@@ -5,10 +5,7 @@ google-cloud-secret-manager==2.16.2
 google-cloud-logging==3.5.0
 google-cloud-monitoring==2.15.1
 requests==2.31.0
-python-dotenv==1.0.0
 pytz==2023.3.post1
-# Test dependencies
-pytest==7.4.3
 pydantic
 starlette
 
