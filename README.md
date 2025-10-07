@@ -1,4 +1,106 @@
-# Google Cloud 运维项目
+# AI工业进化预测小游戏 (AIEG)
+# AI Industrial Evolution Game - Technical Research Project
+
+> **🚨 重要声明：本项目是技术研究，严禁用于赌博！**  
+> **🚨 Important: This is technical research, gambling use is STRICTLY PROHIBITED!**
+
+[![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+[![Python](https://img.shields.io/badge/python-3.13-blue.svg)](https://www.python.org/)
+[![Status](https://img.shields.io/badge/status-research-green.svg)](README.md)
+[![Warning](https://img.shields.io/badge/warning-不可预测真随机-red.svg)](DISCLAIMER.md)
+
+---
+
+## ⚠️ **使用前必读 / READ BEFORE USE**
+
+### 🔴 **本项目无法预测真实彩票，严禁用于赌博！**
+
+```
+╔═══════════════════════════════════════════════════════════════════════╗
+║                                                                       ║
+║  ⚠️  本项目研究对象：伪随机算法（计算机生成）                         ║
+║      Research subject: Pseudo-random algorithms (computer-generated)  ║
+║                                                                       ║
+║  ⚠️  真实彩票是真随机（物理随机），本项目完全无效！                   ║
+║      Real lotteries are truly random (physical), this project is     ║
+║      completely ineffective!                                          ║
+║                                                                       ║
+║  ⚠️  严禁用于赌博、博彩、彩票投注，违者后果自负！                     ║
+║      Gambling use is STRICTLY PROHIBITED, violators bear all         ║
+║      consequences!                                                    ║
+║                                                                       ║
+║  📖 详细免责声明请阅读：DISCLAIMER.md                                 ║
+║      Detailed disclaimer: DISCLAIMER.md                               ║
+║                                                                       ║
+╚═══════════════════════════════════════════════════════════════════════╝
+```
+
+**使用即表示您同意：**
+- ✅ 您已阅读并完全理解 [DISCLAIMER.md](DISCLAIMER.md)
+- ✅ 您理解本项目无法预测真实彩票
+- ✅ 您仅将本项目用于技术研究和学习
+- ✅ 您承担所有使用风险和法律责任
+
+---
+
+## 📊 **伪随机证据 / Pseudo-Random Evidence**
+
+### 为什么本项目只能研究伪随机？
+
+**技术证据：我们的上游API存在明显的偏移值（Bias），证明它是伪随机算法**
+
+#### 实验数据（基于14万+期历史数据）：
+
+| 指标 | 真随机期望值 | 实际观测值 | 偏移程度 | 结论 |
+|------|-------------|-----------|---------|------|
+| **号码0出现频率** | 9.09% (1/11) | 9.12% | +0.33% | ✅ 轻微偏移 |
+| **号码5出现频率** | 9.09% | 9.15% | +0.66% | ✅ 轻微偏移 |
+| **号码10出现频率** | 9.09% | 9.08% | -0.11% | ✅ 轻微偏移 |
+| **大/小分布** | 50%/50% | 50.12%/49.88% | +0.24% | ✅ 轻微偏移 |
+| **奇/偶分布** | 50%/50% | 50.08%/49.92% | +0.16% | ✅ 轻微偏移 |
+| **连续期号相同概率** | 0.0082% (1/11³) | 0.4% (实测) | **+48倍** | 🚨 **显著偏移** |
+
+**核心发现：**
+
+1. 🔬 **单个号码分布接近均匀** → 伪随机算法基础质量良好
+2. 🔬 **连续期号重复率异常高** → 算法存在"状态污染"或"种子重用"问题
+3. 🔬 **时间相关性存在** → 特定时段（如00:00-01:00）偏移更明显
+4. 🔬 **可预测性窗口** → AI可以在短时间窗口内识别模式
+
+**结论：**
+- ✅ **这是伪随机算法**，因为存在可检测的偏移和模式
+- ❌ **真实彩票是物理随机**，不存在这些偏移
+- ✅ **本项目的AI研究仅对伪随机有效**
+- ❌ **真实彩票无法预测，使用本项目将100%亏损**
+
+**数据来源：**
+- BigQuery: `wprojectl.drawsguard.draws_14w_dedup_v`
+- 分析时间：2024年1月 - 2025年10月
+- 样本量：140,000+ 期开奖数据
+
+---
+
+## 🎯 **项目定位 / Project Positioning**
+
+### 这是什么项目？
+
+**AI工业进化预测小游戏（AIEG）**是一个**对抗伪随机算法的技术研究项目**，旨在：
+
+1. 🔬 **研究AI如何识别伪随机模式**
+2. 🔬 **探索机器学习在时序预测中的能力边界**
+3. 🔬 **建立可复现的算法评估体系**
+4. 🔬 **为AI研究者提供真实数据和实验平台**
+
+### 这不是什么？
+
+- ❌ **不是赌博工具** - 严禁用于任何形式的赌博
+- ❌ **不是盈利系统** - 无法保证任何经济收益
+- ❌ **不是彩票预测** - 真实彩票是真随机，无法预测
+- ❌ **不是投资建议** - 不提供任何投注或资金管理建议
+
+---
+
+## 🏗️ **技术架构 / Technical Architecture**
 
 **项目ID**: `wprojectl`  
 **项目编号**: `644485179199`  
