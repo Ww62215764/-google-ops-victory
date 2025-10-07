@@ -4,7 +4,11 @@ AI Industrial Evolution Game (AIEG) - Data Collector
 AI工业进化预测小游戏 - 数据采集服务
 版本: 7.1.0 - Evolution (进化)
 
-这是一个自主开奖、自主预测的彩票类型小游戏系统
+系统定位：
+- 采集上游API的伪随机开奖结果
+- 为AI预测引擎提供实时数据
+- 对抗伪随机算法，提升预测准确率
+- 专注预测能力，不涉及下注和资金管理
 """
 
 import hashlib
