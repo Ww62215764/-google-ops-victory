@@ -28,7 +28,7 @@ class UpstreamStaleException(Exception):
 logger = logging.getLogger(__name__)
 
 PROJECT = os.environ.get("GCP_PROJECT") or os.environ.get("PROJECT_ID", "wprojectl")
-BQ_MONITORING = os.environ.get("BQ_MONITORING_DATASET", "pc28_monitoring")
+BQ_MONITORING = os.environ.get("BQ_MONITORING_DATASET", "aieg_monitoring")
 UPSTREAM_TABLE = f"{PROJECT}.{BQ_MONITORING}.upstream_call_log"
 ALERTS_TABLE = f"{PROJECT}.{BQ_MONITORING}.upstream_stale_alerts"
 

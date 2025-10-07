@@ -1,8 +1,11 @@
-# 🚀 DrawsGuard生产环境部署指南
+# 🚀 AI工业进化预测小游戏 - 生产环境部署指南
 
-> **版本**: v7.0 Phoenix  
+> **项目**: AI Industrial Evolution Game (AIEG)  
+> **版本**: v7.1 Evolution  
 > **状态**: 已准备好生产部署  
 > **最后更新**: 2025-10-07
+>
+> **项目性质**: 自主开奖、自主预测的彩票类型小游戏
 
 ---
 
@@ -46,7 +49,7 @@ export GCP_LOCATION="us-central1"
 export BQLOC="us-central1"
 
 # 验证Secret Manager中的API密钥
-gcloud secrets versions access latest --secret="pc28-api-key"
+gcloud secrets versions access latest --secret="aieg-api-key"
 ```
 
 #### 2. 验证服务账号权限
@@ -61,8 +64,8 @@ gcloud projects get-iam-policy wprojectl \
 ```bash
 # 验证关键表存在
 bq show --location=$BQLOC wprojectl:drawsguard.draws
-bq show --location=$BQLOC wprojectl:pc28_monitoring.upstream_calls
-bq show --location=$BQLOC wprojectl:pc28_monitoring.upstream_stale_alerts
+bq show --location=$BQLOC wprojectl:aieg_monitoring.upstream_calls
+bq show --location=$BQLOC wprojectl:aieg_monitoring.upstream_stale_alerts
 ```
 
 ---
@@ -180,7 +183,7 @@ SELECT
   COUNT(*) as call_count,
   COUNT(DISTINCT returned_period) as unique_periods,
   MAX(call_ts) as last_call
-FROM `wprojectl.pc28_monitoring.upstream_calls`
+FROM `wprojectl.aieg_monitoring.upstream_calls`
 WHERE DATE(call_ts, 'Asia/Shanghai') = CURRENT_DATE('Asia/Shanghai')
 GROUP BY collector
 ```
@@ -234,7 +237,7 @@ SELECT
   consecutive_count,
   severity,
   note
-FROM `wprojectl.pc28_monitoring.upstream_stale_alerts`
+FROM `wprojectl.aieg_monitoring.upstream_stale_alerts`
 ORDER BY alert_ts DESC
 LIMIT 10
 '

@@ -1,7 +1,10 @@
 #!/usr/bin/env python3
 """
-DrawsGuard API Collector - Real-time Telegram Push & Observability Enabled
-版本: 7.0.0 - Phoenix (不死鸟)
+AI Industrial Evolution Game (AIEG) - Data Collector
+AI工业进化预测小游戏 - 数据采集服务
+版本: 7.1.0 - Evolution (进化)
+
+这是一个自主开奖、自主预测的彩票类型小游戏系统
 """
 
 import hashlib
@@ -282,7 +285,7 @@ UTC_TZ = pytz.utc
 def get_api_key():
     """Retrieves the API key from Google Cloud Secret Manager with retry logic."""
     client = app_context.secret_client
-    name = f"projects/{GCP_PROJECT_ID}/secrets/pc28-api-key/versions/latest"
+    name = f"projects/{GCP_PROJECT_ID}/secrets/aieg-api-key/versions/latest"
     response = client.access_secret_version(request={"name": name})
     return response.payload.data.decode("UTF-8")
 
@@ -401,7 +404,7 @@ async def collect(background_tasks: BackgroundTasks):
         current_period_str = data.get("retdata", {}).get("curent", {}).get("long_issue")
         if current_period_str:
             detect_and_handle_upstream_stale(
-                collector_name="pc28_main_api",
+                collector_name="aieg_main_api",
                 returned_period=int(current_period_str),
                 response_json=json.dumps(data),
             )

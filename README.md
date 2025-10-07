@@ -55,7 +55,7 @@ GDPR、中国《个人信息保护法》、数据分类、用户权利、审计�
 环境配置、数据模型、性能优化、安全配置、监控告警、灾难恢复等技术细节。
 
 **关键要点**:
-- 12个BigQuery数据集架构（pc28/pc28_prod/pc28_audit等）
+- 完整的BigQuery数据集架构（aieg/aieg_prod/aieg_audit等）
 - 12个GCS存储桶规范（生命周期、加密）
 - 核心表Schema定义（draws_14w/access_logs）
 - 查询优化规则（分区过滤、聚簇优化）
