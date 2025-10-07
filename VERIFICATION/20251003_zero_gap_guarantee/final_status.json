@@ -1,3 +1,0 @@
-Error in query string: Error processing job
-'wprojectl:bqjob_r18e239160bd78cc5_00000199aaba9e30_1': Column 4 in UNION ALL
-has incompatible types: DATE, STRING at [14:1]
